@@ -1,37 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "defs.c"
 //Code referenced from https://en.cppreference.com/c/io/fopen
 //No safety for commas inside apostrophes.
 //Specifications: ints and longs are guaranteed (at least) 4 bytes, signed.
 //This program accepts a CSV and outputs a compressed binary file.
-typedef enum opcodes{
-	NOP=0,
-	//Arithmetic instructions
-	ADD=1,	//dest = src1 + src2
-	ADDI=2,	//dest = src1 + imm
-	SUB=3,	//see add
-	SUBI=4,
-	MUL=5,	//dest = src1 * src2
-	MULI=6,	//dest = src1 * imm
-	DIV=7,	//see mul
-	DIVI=8,
-	//All jump instructions are absolute jumps by instruction position
-	//All jump arguments shall be registers
-	//Jump to arg0 if...
-	JMP=9,	//true
-	JE=10,	//arg1 == arg2
-	JNE=11,	//arg1 != arg2
-	JL=12,	//arg1 < arg2
-	JG=13,	//arg1 > arg2
-	JMPR=14,	//JMP to arg0's value
-	//Write/read functions reference non-register memory by string reference
-	//Implementation of what each string refers to is left to the program caller
-	//Always refers to LOCATION first, then the register to read/write from.
-	WRITE=15,	
-	READ=16,	
-	FUNC=17	//func(args...) where args is a single string.
-} OPC;
+
 //Reads at most count-1 characters from stream and writes them to str, IFF there is a comma or newline in that sequence.
 //Returns str on success and NULL on failure.
 //Exit program on fail to read properly.
@@ -82,8 +57,39 @@ int next_int(FILE *stream){
 	free(ptr);
 	return result;
 }
+
+unsigned int tmp_file_size = 512;
+unsigned int tmp_used_size = 0;
+char *tmp_file;
+char *tmp_file_ptr;
+void init_tmp_file(){
+	tmp_used_size = 0;
+	tmp_file_size = 512;
+	tmp_file = calloc(tmp_file_size, sizeof(char));
+	tmp_file_ptr = tmp_file;
+}
+//write 'size' bytes to the array in tmp_file.
+void write_bytes_to_tmp(void *input, int size){
+	if(tmp_file_size < tmp_used_size + size){
+		tmp_file_size*=2;
+		tmp_file = realloc(tmp_file, tmp_file_size);
+		tmp_file_ptr = tmp_file + tmp_used_size;
+	}
+	char *set = (char *)input;
+	while(size > 0){
+		tmp_file_ptr = set;
+		++set;
+		++tmp_file_ptr;
+	}
+	return;
+}
+void cleanup_tmp_file(){
+	free(tmp_file);
+	return;
+}
 int main(int argc, char * argv[])
 {
+	atexit(cleanup_tmp_file);
 	if (argc > 1) {
 		printf("Rcvd value %s\n", argv[1]);
 	} else {
@@ -127,6 +133,10 @@ int main(int argc, char * argv[])
 		return is_ok;
 	}
 	printf("Begin custom read\n");
+	
+	//Make a temporary file 
+	init_tmp_file();
+	
 	while (!feof(fp)) {// standard C I/O file reading loop
  		//Initial state. 
  		//String holder
@@ -140,8 +150,14 @@ int main(int argc, char * argv[])
 	 		}
 	 		break;
  		}
+ 		
  		//Write str to file as an integer here.
-		printf("Instruction %s ", str);
+		printf("Instruction %s = %u, ", str, parse_op_int(str));
+		//TODO ADD TO TEMP FILE
+		//TODO ERROR cast to pointer from integer of different size
+		//only want the first byte, i.e. the number 0-255 as a single byte and write this to file
+		
+		
 		//If this is any of the following instructions, get two integers and write to file.
  		if (strcmp(str, "ADD") == 0 || strcmp(str, "ADDI") == 0 || strcmp(str, "SUB") == 0 || strcmp(str, "SUBI") == 0 || strcmp(str, "MUL") == 0 || strcmp(str, "MULI") == 0 || strcmp(str, "DIV") == 0 || strcmp(str, "DIVI") == 0 || strcmp(str, "JE") == 0 || strcmp(str, "JNE") == 0 || strcmp(str, "JE") == 0 || strcmp(str, "JL") == 0 || strcmp(str, "JG") == 0)
 		{
