@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "defs.c"
+#include "tmp_file.h"
 //Code referenced from https://en.cppreference.com/c/io/fopen
 //No safety for commas inside apostrophes.
 //Specifications: ints and longs are guaranteed (at least) 4 bytes, signed.
@@ -58,38 +59,8 @@ int next_int(FILE *stream){
 	return result;
 }
 
-unsigned int tmp_file_size = 512;
-unsigned int tmp_used_size = 0;
-char *tmp_file;
-char *tmp_file_ptr;
-void init_tmp_file(){
-	tmp_used_size = 0;
-	tmp_file_size = 512;
-	tmp_file = calloc(tmp_file_size, sizeof(char));
-	tmp_file_ptr = tmp_file;
-}
-//write 'size' bytes to the array in tmp_file.
-void write_bytes_to_tmp(void *input, int size){
-	if(tmp_file_size < tmp_used_size + size){
-		tmp_file_size*=2;
-		tmp_file = realloc(tmp_file, tmp_file_size);
-		tmp_file_ptr = tmp_file + tmp_used_size;
-	}
-	char *set = (char *)input;
-	while(size > 0){
-		tmp_file_ptr = set;
-		++set;
-		++tmp_file_ptr;
-	}
-	return;
-}
-void cleanup_tmp_file(){
-	free(tmp_file);
-	return;
-}
 int main(int argc, char * argv[])
 {
-	atexit(cleanup_tmp_file);
 	if (argc > 1) {
 		printf("Rcvd value %s\n", argv[1]);
 	} else {
@@ -135,7 +106,8 @@ int main(int argc, char * argv[])
 	printf("Begin custom read\n");
 	
 	//Make a temporary file 
-	init_tmp_file();
+	tfile *tmp_file = ctr_tfile();
+	//atexit(close_tfile(tmp_file));
 	
 	while (!feof(fp)) {// standard C I/O file reading loop
  		//Initial state. 
@@ -153,9 +125,7 @@ int main(int argc, char * argv[])
  		
  		//Write str to file as an integer here.
 		printf("Instruction %s = %u, ", str, parse_op_int(str));
-		//TODO ADD TO TEMP FILE
-		//TODO ERROR cast to pointer from integer of different size
-		//only want the first byte, i.e. the number 0-255 as a single byte and write this to file
+		write_byte_to_tmp(tmp_file, parse_op_int(str));
 		
 		
 		//If this is any of the following instructions, get two integers and write to file.
@@ -189,6 +159,7 @@ int main(int argc, char * argv[])
 		}
 	}
     fclose(fp);
+    close_tfile(tmp_file);
     return is_ok;
 }
 //TODO Past line 146 change all prints to file writes.

@@ -48,9 +48,10 @@ const char *op_strings[] = {
 	"READ",
 	"FUNC"
 	};
-int parse_op_int(char *input){
+//Return a single byte for each opcode
+char parse_op_int(char *input){
 	for(int i = 0; i < (sizeof(op_strings)/sizeof(const char *)); i++){
-		if(strcmp(op_strings[i], input) == 0) return i;
+		if(strcmp(op_strings[i], input) == 0) return (char)i;
 	}
 	return 0;
 }
