@@ -73,7 +73,7 @@ int main(int argc, char * argv[])
 		printf("Could not open file '%s'\n",argv[1]);
 		return 0;
 	}else{
-		printf("Opened file '%s' with pointer %u\n", argv[1], fp);
+		printf("Opened file '%s' p= %u\n", argv[1], fp);
 	}
 	int is_ok = EXIT_FAILURE;
 
@@ -93,7 +93,7 @@ int main(int argc, char * argv[])
         puts("I/O error when reading");
     else if (feof(fp))
     {
-        puts("End of file is reached successfully");
+        puts("End of file reached successfully");
         is_ok = EXIT_SUCCESS;
     }
     //Begin custom code
@@ -107,12 +107,9 @@ int main(int argc, char * argv[])
 	
 	//Make a temporary file 
 	tfile *tmp_file = ctr_tfile();
-	//atexit(close_tfile(tmp_file));
+	char *str = malloc(512*sizeof(char));	
 	
 	while (!feof(fp)) {// standard C I/O file reading loop
- 		//Initial state. 
- 		//String holder
- 		char *str = malloc(512*sizeof(char));
  		str = fgets_comma(str, 8, fp);
  		if (str == NULL) {
  			if (!feof(fp)) {
@@ -124,6 +121,7 @@ int main(int argc, char * argv[])
  		}
  		
  		//Write str to file as an integer here.
+ 		printf("parse op int\n");
 		printf("Instruction %s = %u, ", str, parse_op_int(str));
 		write_byte_to_tmp(tmp_file, parse_op_int(str));
 		
@@ -133,7 +131,14 @@ int main(int argc, char * argv[])
 		{
 			int n = next_int(fp);
 			printf("%d ",n);
+			char *foo = int_to_bytes(n);
+			write_bytes_to_tmp(tmp_file, foo, 4);
+			free(foo);
+			
 			n = next_int(fp);
+			foo = int_to_bytes(n);
+			write_bytes_to_tmp(tmp_file, foo, 4);
+			free(foo);
 			printf("%d\n",n);
 		} else if (strcmp(str, "JMP") == 0 || strcmp(str, "JMPR") == 0){
 			int n = next_int(fp);
@@ -159,6 +164,8 @@ int main(int argc, char * argv[])
 		}
 	}
     fclose(fp);
+    free(str);
+    tfile_write_to_file(tmp_file, "test.output");
     close_tfile(tmp_file);
     return is_ok;
 }
