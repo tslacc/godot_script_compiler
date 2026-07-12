@@ -27,8 +27,8 @@ void close_tfile(tfile *t){
 const float TMP_FILE_BUFFER_SCALE_FACTOR = 1.5;
 
 void write_bytes_to_tmp(tfile *t, void *input, int size){
-	printf("writing bytes to %u from %u size %u\n", t, input, size);
-	printf("Current buffer size is %u out of %u\n", t->size_used, t->total_size_allocated); 
+	//printf("writing bytes to %u from %u size %u\n", t, input, size);
+	//printf("Current buffer size is %u out of %u\n", t->size_used, t->total_size_allocated); 
 	if(t->total_size_allocated < t->size_used + size){
 		t->total_size_allocated*=TMP_FILE_BUFFER_SCALE_FACTOR;
 		t->buffer = realloc(t->buffer, t->total_size_allocated);
@@ -44,8 +44,8 @@ void write_bytes_to_tmp(tfile *t, void *input, int size){
 }
 
 void write_byte_to_tmp(tfile *t, char input){
-	printf("writing byte to %u val %u\n", t, input);
-	printf("Current buffer size is %u out of %u\n", t->size_used, t->total_size_allocated); 
+	//printf("writing byte to %u val %u\n", t, input);
+	//printf("Current buffer size is %u out of %u\n", t->size_used, t->total_size_allocated); 
 	if(t->total_size_allocated < t->size_used + 1){
 		t->total_size_allocated*=TMP_FILE_BUFFER_SCALE_FACTOR;
 		t->buffer = realloc(t->buffer, t->total_size_allocated);
@@ -54,16 +54,35 @@ void write_byte_to_tmp(tfile *t, char input){
 	t->size_used++;
 	return;
 }
-//Converts a given integer into four bytes
-//Big-endian
+//Unions interpret values as LITTLE-ENDIAN
+union byte_interpreter{
+	int b_int;
+	float b_float;
+	char bytes[sizeof(float)];
+};
+
+//Converts a given integer into bytes
+//Output shall be in little-endian
 char *int_to_bytes(int input){
+	union byte_interpreter val;
+	val.b_int = input;
+	char *result = malloc(sizeof(int));
 	
-	char *result = malloc(5*sizeof(char));
+	//This is not portable because endianness is not guaranteed.
+	memcpy(result, val.bytes, sizeof(int));
+	
+//	result[0] = val.b[0];
+//	result[1] = val.b[1];
+//	result[2] = val.b[2];
+//	result[3] = val.b[3];
+	
+	/*
 	result[0] = (input & 0xff000000) >> 8*3;
 	result[1] = (input & 0x00ff0000) >> 8*2;
 	result[2] = (input & 0x0000ff00) >> 8*1;	
 	result[3] = (input & 0x000000ff) >> 8*0;
-	result[4] = '\0';
+	*/
+	
 	printf("rcvd %d, conv = %d, %d, %d, %d\n", input, result[0], result[1], result[2], result[3]);
 	return result;
 }

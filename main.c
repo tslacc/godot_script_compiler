@@ -23,11 +23,13 @@ char *fgets_comma(char *str, int count, FILE *stream){
 		work++;
 		count--;
 	}
+	/*
 	if (c == EOF) {
 		printf("End of file\n");
 	} else {
 		printf("Error when reading file, last char is %c %u\n",c,c);
 	}
+	*/
 	return NULL;
 }
 char *fgets_newline_only(char *str, int count, FILE *stream){
@@ -62,9 +64,9 @@ int next_int(FILE *stream){
 int main(int argc, char * argv[])
 {
 	if (argc > 1) {
-		printf("Rcvd value %s\n", argv[1]);
+		printf("Opening file \"%s\"\n", argv[1]);
 	} else {
-		printf("Rvcd no file\n");
+		printf("No file input\n");
 		return 0;
 	}
 	FILE* fp;
@@ -73,7 +75,7 @@ int main(int argc, char * argv[])
 		printf("Could not open file '%s'\n",argv[1]);
 		return 0;
 	}else{
-		printf("Opened file '%s' p= %u\n", argv[1], fp);
+		printf("Opened file \"%s\" p= %u\n", argv[1], fp);
 	}
 	int is_ok = EXIT_FAILURE;
 
@@ -103,7 +105,6 @@ int main(int argc, char * argv[])
 		perror("File opening failed");
 		return is_ok;
 	}
-	printf("Begin custom read\n");
 	
 	//Make a temporary file 
 	tfile *tmp_file = ctr_tfile();
@@ -121,25 +122,21 @@ int main(int argc, char * argv[])
  		}
  		
  		//Write str to file as an integer here.
- 		printf("parse op int\n");
 		printf("Instruction %s = %u, ", str, parse_op_int(str));
 		write_byte_to_tmp(tmp_file, parse_op_int(str));
-		
 		
 		//If this is any of the following instructions, get two integers and write to file.
  		if (strcmp(str, "ADD") == 0 || strcmp(str, "ADDI") == 0 || strcmp(str, "SUB") == 0 || strcmp(str, "SUBI") == 0 || strcmp(str, "MUL") == 0 || strcmp(str, "MULI") == 0 || strcmp(str, "DIV") == 0 || strcmp(str, "DIVI") == 0 || strcmp(str, "JE") == 0 || strcmp(str, "JNE") == 0 || strcmp(str, "JE") == 0 || strcmp(str, "JL") == 0 || strcmp(str, "JG") == 0)
 		{
 			int n = next_int(fp);
-			printf("%d ",n);
 			char *foo = int_to_bytes(n);
 			write_bytes_to_tmp(tmp_file, foo, 4);
-			free(foo);
-			
+			free(foo);			
 			n = next_int(fp);
 			foo = int_to_bytes(n);
 			write_bytes_to_tmp(tmp_file, foo, 4);
 			free(foo);
-			printf("%d\n",n);
+			//printf("%d\n",n);
 		} else if (strcmp(str, "JMP") == 0 || strcmp(str, "JMPR") == 0){
 			int n = next_int(fp);
 			printf("%d\n",n);
@@ -169,4 +166,3 @@ int main(int argc, char * argv[])
     close_tfile(tmp_file);
     return is_ok;
 }
-//TODO Past line 146 change all prints to file writes.
