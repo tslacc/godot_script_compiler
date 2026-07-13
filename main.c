@@ -129,14 +129,11 @@ int main(int argc, char * argv[])
  		if (strcmp(str, "ADD") == 0 || strcmp(str, "ADDI") == 0 || strcmp(str, "SUB") == 0 || strcmp(str, "SUBI") == 0 || strcmp(str, "MUL") == 0 || strcmp(str, "MULI") == 0 || strcmp(str, "DIV") == 0 || strcmp(str, "DIVI") == 0 || strcmp(str, "JE") == 0 || strcmp(str, "JNE") == 0 || strcmp(str, "JE") == 0 || strcmp(str, "JL") == 0 || strcmp(str, "JG") == 0)
 		{
 			int n = next_int(fp);
-			char *foo = int_to_bytes(n);
-			write_bytes_to_tmp(tmp_file, foo, 4);
-			free(foo);			
+			printf("%d ",n);
+			write_int_to_tmp(tmp_file, n);
 			n = next_int(fp);
-			foo = int_to_bytes(n);
-			write_bytes_to_tmp(tmp_file, foo, 4);
-			free(foo);
-			//printf("%d\n",n);
+			printf("%d",n);
+			write_int_to_tmp(tmp_file, n);
 		} else if (strcmp(str, "JMP") == 0 || strcmp(str, "JMPR") == 0){
 			int n = next_int(fp);
 			printf("%d\n",n);
@@ -159,6 +156,7 @@ int main(int argc, char * argv[])
 			}
 			printf("%s\n",str);
 		}
+		printf("\n");
 	}
     fclose(fp);
     free(str);

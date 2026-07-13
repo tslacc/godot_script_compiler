@@ -2,7 +2,7 @@
 #define TMP_FILE_BUF
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "lib_bserial.c"
 const int TFILE_BUF_INIT_SIZE = 512;
 typedef struct temp_file {
 	unsigned int total_size_allocated;
@@ -54,38 +54,14 @@ void write_byte_to_tmp(tfile *t, char input){
 	t->size_used++;
 	return;
 }
-//Unions interpret values as LITTLE-ENDIAN
-union byte_interpreter{
-	int b_int;
-	float b_float;
-	char bytes[sizeof(float)];
-};
 
-//Converts a given integer into bytes
-//Output shall be in little-endian
-char *int_to_bytes(int input){
-	union byte_interpreter val;
-	val.b_int = input;
-	char *result = malloc(sizeof(int));
-	
-	//This is not portable because endianness is not guaranteed.
-	memcpy(result, val.bytes, sizeof(int));
-	
-//	result[0] = val.b[0];
-//	result[1] = val.b[1];
-//	result[2] = val.b[2];
-//	result[3] = val.b[3];
-	
-	/*
-	result[0] = (input & 0xff000000) >> 8*3;
-	result[1] = (input & 0x00ff0000) >> 8*2;
-	result[2] = (input & 0x0000ff00) >> 8*1;	
-	result[3] = (input & 0x000000ff) >> 8*0;
-	*/
-	
-	printf("rcvd %d, conv = %d, %d, %d, %d\n", input, result[0], result[1], result[2], result[3]);
-	return result;
+void write_int_to_tmp(tfile *t, int input){
+	char *bytes = int_to_bytes(input);
+	write_bytes_to_tmp(t, bytes, sizeof(int));
+	free(bytes);
+	return;
 }
+
 
 void tfile_write_to_file(tfile *t, char *path){
 	FILE *fp = fopen(path, "w");
