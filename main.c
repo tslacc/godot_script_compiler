@@ -137,6 +137,7 @@ int main(int argc, char * argv[])
 		} else if (strcmp(str, "JMP") == 0 || strcmp(str, "JMPR") == 0){
 			int n = next_int(fp);
 			printf("%d\n",n);
+			write_int_to_tmp(tmp_file, n);
 		} else if (strcmp(str, "WRITE") == 0 || strcmp(str, "READ") == 0){
 			str = fgets_comma(str,512,fp);
 			if (str == NULL){
@@ -154,6 +155,7 @@ int main(int argc, char * argv[])
 				fclose(fp);
 				return is_ok;
 			}
+			write_bytes_to_file(tmp_file, str, strlen(str)); 
 			printf("%s\n",str);
 		}
 		printf("\n");
