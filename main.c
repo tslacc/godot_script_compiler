@@ -155,7 +155,7 @@ int main(int argc, char * argv[])
 				fclose(fp);
 				return is_ok;
 			}
-			write_bytes_to_file(tmp_file, str, strlen(str)); 
+			write_bytes_to_tmp(tmp_file, str, strlen(str)); 
 			printf("%s\n",str);
 		}
 		printf("\n");
