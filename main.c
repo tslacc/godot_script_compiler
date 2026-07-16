@@ -60,16 +60,26 @@ int next_int(FILE *stream){
 	free(ptr);
 	return result;
 }
+FILE* fp;
+tfile *tmp_file;
+char *str;
+void cleanup(){
+	if(fp!=NULL) free(fp);
+	if(tmp_file!=NULL) close_tfile(tmp_file);
+	//Assumes str is malloced.
+	if(str!=NULL) free(str);
+}
 
 int main(int argc, char * argv[])
 {
+	atexit(cleanup);
 	if (argc > 1) {
 		printf("Opening file \"%s\"\n", argv[1]);
 	} else {
 		printf("No file input\n");
 		return 0;
 	}
-	FILE* fp;
+
 	fp = fopen(argv[1],"r");
 	if(fp==NULL){
 		printf("Could not open file '%s'\n",argv[1]);
@@ -107,8 +117,8 @@ int main(int argc, char * argv[])
 	}
 	
 	//Make a temporary file 
-	tfile *tmp_file = ctr_tfile();
-	char *str = malloc(512*sizeof(char));	
+	tmp_file = ctr_tfile();
+	str = malloc(512*sizeof(char));	
 	
 	while (!feof(fp)) {// standard C I/O file reading loop
  		str = fgets_comma(str, 8, fp);
@@ -152,7 +162,6 @@ int main(int argc, char * argv[])
 			str = fgets_newline_only(str,512,fp);
 			if (str == NULL){
 				perror("Failed to read string operand.\n");
-				fclose(fp);
 				return is_ok;
 			}
 			write_bytes_to_tmp(tmp_file, str, strlen(str)); 
@@ -160,9 +169,6 @@ int main(int argc, char * argv[])
 		}
 		printf("\n");
 	}
-    fclose(fp);
-    free(str);
     tfile_write_to_file(tmp_file, "test.output");
-    close_tfile(tmp_file);
     return is_ok;
 }
